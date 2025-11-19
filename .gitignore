@@ -1,0 +1,15 @@
+# Laravel backend
+backend/laravel/vendor/
+backend/laravel/node_modules/
+backend/laravel/.env
+backend/laravel/storage/
+
+# Vue frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# OS / IDE files
+.DS_Store
+.idea/
+.vscode/

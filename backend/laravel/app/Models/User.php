@@ -1,0 +1,74 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'email',
+        'role'
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    // Tasks where this user is the assignee
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'assigned_to_id');
+    }
+
+    // Tasks created by this user
+    public function createdTasks()
+    {
+        return $this->hasMany(Task::class, 'created_by_id');
+    }
+
+    // Comments written by this user
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    // Activity log entries caused by this user
+    public function activityLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+}
