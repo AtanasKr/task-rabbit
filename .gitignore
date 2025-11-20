@@ -2,7 +2,6 @@
 backend/laravel/vendor/
 backend/laravel/node_modules/
 backend/laravel/.env
-backend/laravel/storage/
 
 # Vue frontend
 frontend/node_modules/
