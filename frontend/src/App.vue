@@ -1,10 +1,12 @@
 <template>
   <div id="app">
+    <GlobalLoader />
     <router-view />
   </div>
 </template>
 
 <script setup>
+import GlobalLoader from './components/GlobalLoader.vue';
 </script>
 
 <style>

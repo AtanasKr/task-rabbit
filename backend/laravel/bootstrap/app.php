@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->redirectGuestsTo(fn() => null);
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, Request $request) {
@@ -22,7 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => 'Unauthorized.'
                 ], 401);
             }
-            
             // For web routes, redirect to login
             return redirect()->guest(route('login'));
         });

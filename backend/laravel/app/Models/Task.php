@@ -22,13 +22,13 @@ class Task extends Model
     ];
 
     protected $casts = [
-        'status_id'      => 'integer',
+        'status_id' => 'integer',
         'assigned_to_id' => 'integer',
-        'created_by_id'  => 'integer',
-        'due_date'       => 'date',
-        'completed_at'   => 'datetime',
-        'created_at'     => 'datetime',
-        'updated_at'     => 'datetime',
+        'created_by_id' => 'integer',
+        'due_date' => 'date',
+        'completed_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     public function status()
@@ -55,4 +55,10 @@ class Task extends Model
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
 }

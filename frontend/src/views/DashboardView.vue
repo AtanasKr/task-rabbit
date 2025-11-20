@@ -21,12 +21,15 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { authState, logout } from '../auth';
+import { startLoading, stopLoading } from '../stores/loading';
 
 const router = useRouter();
 
 const handleLogout = async () => {
+  startLoading();
   await logout();
-  router.push({ name: 'login' });
+  stopLoading();
+  router.push({ name: 'login' });S
 };
 </script>
 

@@ -49,27 +49,29 @@ class User extends Authenticatable
         ];
     }
 
-    // Tasks where this user is the assignee
     public function assignedTasks()
     {
         return $this->hasMany(Task::class, 'assigned_to_id');
     }
 
-    // Tasks created by this user
     public function createdTasks()
     {
         return $this->hasMany(Task::class, 'created_by_id');
     }
 
-    // Comments written by this user
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
-    // Activity log entries caused by this user
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    public function projectMemberships()
+    {
+        return $this->belongsToMany(Project::class, 'project_members');
+    }
+
 }

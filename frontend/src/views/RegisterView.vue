@@ -64,7 +64,7 @@
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { authState, register } from '../auth';
-
+import { startLoading, stopLoading } from '../stores/loading';
 import logoMain from '../assets/images/logo-main.png';
 
 const router = useRouter();
@@ -81,7 +81,9 @@ const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 
 const handleRegister = async () => {
+  startLoading();
   const ok = await register(form);
+  stopLoading();
   if (ok) {
     router.push({ name: 'dashboard' });
   }
