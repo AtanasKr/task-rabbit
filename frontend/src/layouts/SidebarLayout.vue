@@ -6,21 +6,25 @@
                 <h2>Task Rabbit</h2>
             </div>
             <nav>
-                <router-link to="/">
+                <router-link to="/dashboard">
                     <i class="fas fa-tachometer-alt"></i>
                     Dashboard
                 </router-link>
-                <router-link to="/profile">
+                <router-link to="/manage-users">
                     <i class="fas fa-users"></i>
                     Manage Users
                 </router-link>
-                <router-link to="/settings">
+                <router-link to="/manage-projects">
                     <i class="fas fa-project-diagram"></i>
                     Manage Projects
                 </router-link>
-                <router-link to="/settings">
+                <router-link to="/analytics">
                     <i class="fas fa-chart-bar"></i>
                     Analytics
+                </router-link>
+                <router-link to="/create-task">
+                    <i class="fas fa-plus-circle"></i>
+                    Create task
                 </router-link>
             </nav>
 

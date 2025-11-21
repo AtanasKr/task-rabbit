@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { authState, fetchUser } from '../auth';
 
-import DashboardLayout from '../layouts/DashboardLayout.vue';
+import SidebarLayout from '../layouts/SidebarLayout.vue';
 import DashboardView from '../views/DashboardView.vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
@@ -9,11 +9,11 @@ import RegisterView from '../views/RegisterView.vue';
 const routes = [
   {
     path: '/',
-    component: DashboardLayout,
+    component: SidebarLayout,
     meta: { requiresAuth: true },
     children: [
       {
-        path: '',
+        path: 'dashboard',
         name: 'dashboard',
         component: DashboardView,
       },
@@ -31,6 +31,11 @@ const routes = [
         path: 'analytics',
         name: 'analytics',
         component: () => import('../views/AnalyticsView.vue'),
+      },
+      {
+        path: 'create-task',
+        name: 'create-task',
+        component: () => import('../views/CreateTaskView.vue'),
       },
     ],
   },

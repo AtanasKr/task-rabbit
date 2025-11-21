@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { authState} from '../auth';
+import { authState } from '../auth';
 
 </script>
 
