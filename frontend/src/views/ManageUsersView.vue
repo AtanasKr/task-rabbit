@@ -1,8 +1,8 @@
 <template>
-  <div class="dashboard-page">
+  <div class="users-page">
     <header class="top-bar">
       <div>
-        <h1>Dashboard</h1>
+        <h1>Users</h1>
         <p v-if="authState.user">
           Hello, <strong>{{ authState.user.name }}</strong>
         </p>

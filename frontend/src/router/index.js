@@ -1,16 +1,41 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { authState, fetchUser } from '../auth';
+
+import DashboardLayout from '../layouts/DashboardLayout.vue';
+import DashboardView from '../views/DashboardView.vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
-import DashboardView from '../views/DashboardView.vue';
 
 const routes = [
   {
     path: '/',
-    name: 'dashboard',
-    component: DashboardView,
+    component: DashboardLayout,
     meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'dashboard',
+        component: DashboardView,
+      },
+      {
+        path: 'manage-users',
+        name: 'manage-users',
+        component: () => import('../views/ManageUsersView.vue'),
+      },
+      {
+        path: 'manage-projects',
+        name: 'manage-projects',
+        component: () => import('../views/ManageProjectsView.vue'),
+      },
+      {
+        path: 'analytics',
+        name: 'analytics',
+        component: () => import('../views/AnalyticsView.vue'),
+      },
+    ],
   },
+
+  // Auth routes (NO SIDEBAR)
   {
     path: '/login',
     name: 'login',
@@ -31,18 +56,11 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  // if we have token but no user, fetch user
   if (authState.token && !authState.user) {
     await fetchUser();
   }
-
-  if (to.meta.requiresAuth && !authState.token) {
-    return next({ name: 'login' });
-  }
-
-  if (to.meta.guestOnly && authState.token) {
-    return next({ name: 'dashboard' });
-  }
+  if (to.meta.requiresAuth && !authState.token) return next({ name: 'login' });
+  if (to.meta.guestOnly && authState.token) return next({ name: 'dashboard' });
 
   next();
 });
