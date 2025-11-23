@@ -59,10 +59,15 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'project_id' => 'required|exists:projects,id',
             'due_date' => 'required|date',
-            'status_id' => 'required',
-            'created_by_id' => 'required',
             'assigned_to_id' => 'required'
         ]);
+
+        $validated['created_by_id'] = $request->user()->id;
+        $defaultStatus = TaskStatus::firstWhere('name', 'In Progress');
+        if (!$defaultStatus) {
+            return response()->json(['message' => 'Default task status "In Progress" not found.'], 500);
+        }
+        $validated['status_id'] = $defaultStatus->id;
 
         $task = Task::create($validated);
 
@@ -73,21 +78,7 @@ class TaskController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'admin') {
-
-            $isProjectMember = $task->project
-                ->members()
-                ->where('users.id', $user->id)
-                ->exists();
-            $isAssignee = $task->assigned_to_id === $user->id;
-            $isCreator = $task->created_by_id === $user->id;
-
-            if (!$isProjectMember && !$isAssignee && !$isCreator) {
-                return response()->json([
-                    'message' => 'You are not authorized to view this task.'
-                ], 403);
-            }
-        }
+        $this->authorizeTaskAccess($task, $user);
 
         $task->load([
             'project:id,name',
@@ -149,15 +140,7 @@ class TaskController extends Controller
     {
         $user = $request->user();
 
-        $isProjectMember = $task->project->members()->where('users.id', $user->id)->exists();
-        $isAssignee = $task->assigned_to_id === $user->id;
-        $isCreator = $task->created_by_id === $user->id;
-
-        if ($user->role !== 'admin' && !$isProjectMember && !$isAssignee && !$isCreator) {
-            return response()->json([
-                'message' => 'You are not authorized to mark this task as complete.'
-            ], 403);
-        }
+        $this->authorizeTaskAccess($task, $user);
 
         $completedStatus = TaskStatus::where('name', 'Completed')->first();
 
@@ -192,4 +175,15 @@ class TaskController extends Controller
         ], 200);
     }
 
+    private function authorizeTaskAccess(Task $task, $user = null)
+    {
+        $user = $user ?? auth()->user();
+        $isProjectMember = $task->project->members()->where('users.id', $user->id)->exists();
+        $isAssignee = $task->assigned_to_id === $user->id;
+        $isCreator = $task->created_by_id === $user->id;
+
+        if ($user->role !== 'admin' && !$isProjectMember && !$isAssignee && !$isCreator) {
+            abort(403, 'You are not authorized to access this task.');
+        }
+    }
 }

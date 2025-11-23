@@ -103,8 +103,6 @@ const createTask = async () => {
     clearAlert();
     try {
         startLoading();
-        form.value.status_id = 1;
-        form.value.created_by_id = authState.user.id;
 
         await axiosInstance.post("/api/tasks", form.value);
 
@@ -118,8 +116,6 @@ const createTask = async () => {
             project_id: "",
             assigned_to_id: "",
             due_date: "",
-            status_id: "",
-            created_by_id: "",
         };
         assignees.value = [];
     } catch (error) {
@@ -163,12 +159,10 @@ onMounted(() => {
     flex-direction: column;
     gap: 18px;
     align-items: center;
-    /* center all form groups horizontally */
 }
 
 .form-group {
     width: 100%;
-    /* all fields take full width */
     display: flex;
     flex-direction: column;
 }
@@ -183,13 +177,11 @@ input,
 textarea,
 select {
     width: 100%;
-    /* enforce uniform width */
     padding: 10px 12px;
     border: 1.5px solid #d1d5db;
     border-radius: 8px;
     font-size: 0.95rem;
     box-sizing: border-box;
-    /* include padding in width */
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
