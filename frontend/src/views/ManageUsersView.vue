@@ -4,7 +4,11 @@
       <h1>Users</h1>
 
       <div class="controls">
-        <input class="user-search" type="text" v-model="searchQuery" placeholder="Search users..." />
+        <div class="search-box">
+          <input v-model="searchQuery" type="text" placeholder="Search users..." @input="loadUsersDebounced"
+            class="search-input" />
+          <span class="search-icon">🔍</span>
+        </div>
       </div>
     </header>
 
@@ -146,6 +150,8 @@ const formatDate = (dateString) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  padding-left: 10rem;
+  padding-right: 10rem;
 }
 
 button {
@@ -155,6 +161,10 @@ button {
   cursor: pointer;
   background-color: rgb(112, 230, 112);
   color: white;
+}
+
+button:hover {
+  opacity: 0.7;
 }
 
 .controls {
@@ -194,5 +204,25 @@ button {
   justify-content: center;
   gap: 1rem;
   align-items: center;
+}
+
+.search-box {
+  position: relative;
+  width: 200px;
+  padding-right: 1em;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
 }
 </style>

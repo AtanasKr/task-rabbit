@@ -3,7 +3,7 @@
         <ErrorAlertComponent v-if="alertMessage || Object.keys(alertFieldErrors).length" :message="alertMessage"
             :type="alertType" :fieldErrors="alertFieldErrors" @close="clearAlert" />
 
-        <h2>Create New Task</h2>
+        <h2 class="page-title">Create New Task</h2>
         <form @submit.prevent="createTask" class="task-form">
             <div class="form-group">
                 <label>Title *</label>
@@ -40,8 +40,8 @@
                 <input type="date" v-model="form.due_date" />
             </div>
 
-            <button type="submit" :disabled="loading">
-                Create Task
+            <button type="submit" :disabled="loading" class="submit-btn">
+                {{ loading ? 'Creating...' : 'Create Task' }}
             </button>
         </form>
     </div>
@@ -103,8 +103,8 @@ const createTask = async () => {
     clearAlert();
     try {
         startLoading();
-        form.value.status_id= 1 //in progress status
-        form.value.created_by_id= authState.user.id; //user creating the request
+        form.value.status_id = 1;
+        form.value.created_by_id = authState.user.id;
 
         await axiosInstance.post("/api/tasks", form.value);
 
@@ -122,7 +122,6 @@ const createTask = async () => {
             created_by_id: "",
         };
         assignees.value = [];
-
     } catch (error) {
         alertType.value = "error";
 
@@ -131,7 +130,6 @@ const createTask = async () => {
         } else {
             alertMessage.value = error.response?.data?.message || "Error creating task.";
         }
-
     } finally {
         stopLoading();
     }
@@ -144,37 +142,89 @@ onMounted(() => {
 
 <style scoped>
 .create-task-page {
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 20px;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #f9fafb;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.page-title {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    color: #111827;
 }
 
 .task-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 18px;
+    align-items: center;
+    /* center all form groups horizontally */
+}
+
+.form-group {
+    width: 100%;
+    /* all fields take full width */
+    display: flex;
+    flex-direction: column;
 }
 
 .form-group label {
     font-weight: 600;
+    margin-bottom: 6px;
+    color: #374151;
 }
 
 input,
 textarea,
 select {
     width: 100%;
-    padding: 8px;
+    /* enforce uniform width */
+    padding: 10px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    /* include padding in width */
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-button {
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.submit-btn {
+    width: 100%;
     background: #2563eb;
     color: white;
-    padding: 8px 12px;
+    padding: 12px 0;
+    font-weight: 600;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
 }
 
-button:disabled {
-    background: gray;
+.submit-btn:hover:not(:disabled) {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
 }
 </style>

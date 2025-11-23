@@ -1,4 +1,3 @@
-// composables/useErrorHandler.js
 import { ref } from 'vue';
 
 export function useErrorHandler() {

@@ -5,7 +5,11 @@
         <h1>Projects</h1>
       </div>
       <div class="controls">
-        <input class="project-search" type="text" v-model="searchQuery" placeholder="Search projects..." />
+        <div class="search-box">
+          <input v-model="searchQuery" type="text" placeholder="Search projects..." @input="loadProjectsDebounced"
+            class="search-input" />
+          <span class="search-icon">🔍</span>
+        </div>
         <button @click="openCreateForm">Create Project</button>
       </div>
     </header>
@@ -127,8 +131,8 @@ const loading = ref(true);
 const showForm = ref(false);
 const editMode = ref(false);
 const users = ref([]);
-const currentMembers = ref([]); // Existing members already in the project
-const newMemberIds = ref([]); // New members to add
+const currentMembers = ref([]);
+const newMemberIds = ref([]);
 
 const { errors, errorMessage, handleError, clearErrors } = useErrorHandler();
 
@@ -292,7 +296,6 @@ const removeMember = async (userId) => {
       data: { user_ids: [userId] }
     });
 
-    // Remove from current members list
     currentMembers.value = currentMembers.value.filter(member => member.id !== userId);
 
   } catch (error) {
@@ -314,6 +317,8 @@ const availableUsers = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  padding-left: 10rem;
+  padding-right: 10rem;
 }
 
 .controls {
@@ -329,6 +334,10 @@ button {
   cursor: pointer;
   background-color: rgb(112, 230, 112);
   color: white;
+}
+
+button:hover {
+  opacity: 0.7;
 }
 
 .project-table {
@@ -372,30 +381,134 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modal-content {
   background: white;
   padding: 2rem;
-  width: 400px;
-  border-radius: 8px;
+  width: 450px;
+  max-width: 90%;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.modal-content h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.6rem;
+  color: #111827;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .modal-content label {
-  display: block;
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: #374151;
 }
 
 .modal-content input,
-.modal-content textarea {
+.modal-content textarea,
+.modal-content select {
   width: 100%;
-  margin-top: 0.25rem;
+  padding: 10px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-top: 6px;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-content ul {
+  padding-left: 1rem;
+  margin-top: 6px;
+}
+
+.modal-content ul li {
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-content ul li button.delete {
+  background: #e74c3c;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  border: none;
+  cursor: pointer;
 }
 
 .form-actions {
   margin-top: 1rem;
   display: flex;
   justify-content: space-between;
+  gap: 10px;
+}
+
+.form-actions button {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.form-actions button[type="submit"] {
+  background: #2563eb;
+  color: white;
+}
+
+.form-actions button[type="submit"]:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.form-actions button.delete {
+  background: #9ca3af;
+  color: white;
+}
+
+.form-actions button.delete:hover {
+  background: #7b8794;
+}
+
+select[multiple] {
+  min-height: 80px;
+}
+
+h3 {
+  margin: 10px 0 6px;
+  font-weight: 600;
+  color: #111827;
 }
 
 .project-search {
@@ -407,5 +520,25 @@ button {
 .members-group {
   display: flex;
   flex-direction: column;
+}
+
+.search-box {
+  position: relative;
+  width: 200px;
+  padding-right: 1em;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
 }
 </style>
