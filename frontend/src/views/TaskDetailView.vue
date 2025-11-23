@@ -25,8 +25,11 @@
                     <button @click="completeTask" class="btn-primary">
                         Mark As Complete
                     </button>
-                    <button v-if="authState.user.role=='admin'" @click="closeTask" class="btn-red">
+                    <button v-if="authState.user.role == 'admin'" @click="closeTask" class="btn-red">
                         Close Task
+                    </button>
+                    <button v-if="authState.user.role === 'admin'" @click="openEditModal" class="btn-assign">
+                        Edit Task
                     </button>
                 </div>
             </div>
@@ -98,9 +101,7 @@
                     </div>
 
                     <div class="comments-list">
-                        <div v-if="loadingComments" class="loading-comments">
-                            Loading comments...
-                        </div>
+                        <div v-if="loadingComments" class="loading-comments">Loading comments...</div>
 
                         <div v-else-if="comments.length === 0" class="no-comments">
                             No comments yet. Be the first to comment!
@@ -142,7 +143,6 @@
                     <label>Comment (Optional)</label>
                     <textarea v-model="assignComment" placeholder="Add a note about this reassignment..." rows="3"
                         class="comment-input"></textarea>
-
                 </div>
 
                 <div class="modal-footer">
@@ -150,6 +150,33 @@
                     <button @click="assignTask" :disabled="!selectedUserId || assigningTask" class="btn-primary">
                         {{ assigningTask ? 'Assigning...' : 'Assign Task' }}
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showEditModal" class="modal-overlay" @click="showEditModal = false">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    <h2>Edit Task</h2>
+                    <button @click="showEditModal = false" class="close-button">×</button>
+                </div>
+
+                <div class="modal-body">
+                    <label>Title</label>
+                    <input v-model="editTaskData.title" type="text" class="comment-input"
+                        style="width: 100%; box-sizing: border-box;" />
+
+                    <label>Description</label>
+                    <textarea v-model="editTaskData.description" rows="4" class="comment-input"></textarea>
+
+                    <label>Due Date</label>
+                    <input v-model="editTaskData.due_date" type="date" class="comment-input"
+                        style="width: 100%; box-sizing: border-box;" />
+                </div>
+
+                <div class="modal-footer">
+                    <button @click="showEditModal = false" class="btn-secondary">Cancel</button>
+                    <button @click="updateTask" class="btn-primary">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -178,6 +205,13 @@ const showAssignModal = ref(false);
 const selectedUserId = ref('');
 const assignComment = ref('');
 const assigningTask = ref(false);
+
+const showEditModal = ref(false);
+const editTaskData = ref({
+    title: '',
+    description: '',
+    due_date: ''
+});
 
 const alert = ref({
     message: "",
@@ -246,7 +280,6 @@ const addComment = async () => {
 
         comments.value.push(res.data);
         newComment.value = "";
-
         showAlert("Comment added!", "success");
     } catch (err) {
         showAlert("Failed to post comment.", "error", err.response?.data?.errors || {});
@@ -305,6 +338,35 @@ const assignTask = async () => {
         showAlert("Failed to assign task.", "error", err.response?.data?.errors || {});
     } finally {
         assigningTask.value = false;
+    }
+};
+
+const openEditModal = () => {
+    editTaskData.value = {
+        title: task.value.title,
+        description: task.value.description,
+        due_date: task.value.due_date ? task.value.due_date.split('T')[0] : ''
+    };
+    showEditModal.value = true;
+};
+
+const updateTask = async () => {
+    try {
+        startLoading();
+        await axiosInstance.put(`/api/tasks/${task.value.id}`, {
+            title: editTaskData.value.title,
+            description: editTaskData.value.description,
+            due_date: editTaskData.value.due_date || null
+        });
+
+        showEditModal.value = false;
+        await fetchTask();
+        showAlert("Task updated successfully!", "success");
+    } catch (err) {
+        console.log(err);
+        showAlert("Failed to update task.", "error", err.response?.data?.errors || {});
+    } finally {
+        stopLoading();
     }
 };
 
@@ -660,7 +722,6 @@ onMounted(() => {
     background: #5a6268;
 }
 
-/* Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -686,14 +747,14 @@ onMounted(() => {
 
 .modal-content textarea,
 .modal-content select[multiple] {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  box-sizing: border-box;
-  min-height: 120px;
-  resize: vertical;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    min-height: 120px;
+    resize: vertical;
 }
 
 .modal-header {
