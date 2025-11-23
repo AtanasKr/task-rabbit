@@ -10,15 +10,15 @@
                     <i class="fas fa-tachometer-alt"></i>
                     Dashboard
                 </router-link>
-                <router-link to="/manage-users">
+                <router-link v-if="authState.user.role==='admin'" to="/manage-users">
                     <i class="fas fa-users"></i>
                     Manage Users
                 </router-link>
-                <router-link to="/manage-projects">
+                <router-link v-if="authState.user.role==='admin'" to="/manage-projects">
                     <i class="fas fa-project-diagram"></i>
                     Manage Projects
                 </router-link>
-                <router-link to="/analytics">
+                <router-link v-if="authState.user.role==='admin'" to="/analytics">
                     <i class="fas fa-chart-bar"></i>
                     Analytics
                 </router-link>
@@ -37,7 +37,9 @@
         </aside>
 
         <main class="content">
-            <router-view />
+            <div class="content-wrapper">
+                <router-view />
+            </div>
         </main>
     </div>
 </template>
@@ -47,6 +49,7 @@ import logoMini from '../assets/images/logo-mini.png';
 import { useRouter } from 'vue-router';
 import { logout } from '../auth';
 import { startLoading, stopLoading } from '../stores/loading';
+import { authState } from '../auth';
 
 const router = useRouter();
 
@@ -61,15 +64,13 @@ const handleLogout = async () => {
 <style scoped>
 .header {
     display: flex;
+    margin-top: 1em;
 }
 
 .layout {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
-    position: fixed;
-    top: 0;
-    left: 0;
 }
 
 .sidebar {
@@ -80,7 +81,11 @@ const handleLogout = async () => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /* Ensures logout is at bottom */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .sidebar nav {
@@ -98,7 +103,6 @@ const handleLogout = async () => {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    /* Space between icon and text */
 }
 
 .sidebar a.router-link-active {
@@ -107,6 +111,7 @@ const handleLogout = async () => {
 
 .logout {
     margin-top: auto;
+    margin-bottom: 1em;
 }
 
 .logout button {
@@ -128,7 +133,13 @@ const handleLogout = async () => {
 
 .content {
     flex: 1;
-    padding: 2rem;
     background: #f5f5f5;
+}
+
+.content-wrapper {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    min-height: 100vh;
+    overflow-y: auto;
 }
 </style>

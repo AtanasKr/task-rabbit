@@ -7,7 +7,7 @@ class TaskService
 {
     public function assignTask(Task $task, int $userId, ?string $comment, $assignerId)
     {
-        $task->assigned_to = $userId;
+        $task->assigned_to_id = $userId;
         $task->save();
 
         if ($comment) {

@@ -1,24 +1,23 @@
 <template>
     <div class="create-task-page">
-        <h2>Create New Task</h2>
+        <ErrorAlertComponent v-if="alertMessage || Object.keys(alertFieldErrors).length" :message="alertMessage"
+            :type="alertType" :fieldErrors="alertFieldErrors" @close="clearAlert" />
 
+        <h2>Create New Task</h2>
         <form @submit.prevent="createTask" class="task-form">
-            <!-- Title -->
             <div class="form-group">
                 <label>Title *</label>
                 <input v-model="form.title" type="text" required placeholder="Enter task title" />
             </div>
 
-            <!-- Description -->
             <div class="form-group">
                 <label>Description</label>
                 <textarea v-model="form.description" placeholder="Enter task description"></textarea>
             </div>
 
-            <!-- Project -->
             <div class="form-group">
                 <label>Project *</label>
-                <select v-model="form.project_id" required>
+                <select v-model="form.project_id" required @change="loadAssignees">
                     <option value="">-- Select a Project --</option>
                     <option v-for="project in projects" :key="project.id" :value="project.id">
                         {{ project.name }}
@@ -26,18 +25,23 @@
                 </select>
             </div>
 
-            <!-- Due Date -->
+            <div class="form-group" v-if="assignees.length > 0">
+                <label>Assign To *</label>
+                <select v-model="form.assigned_to_id" required>
+                    <option value="">-- Select User --</option>
+                    <option v-for="user in assignees" :key="user.id" :value="user.id">
+                        {{ user.name }} ({{ user.email }})
+                    </option>
+                </select>
+            </div>
+
             <div class="form-group">
                 <label>Due Date</label>
                 <input type="date" v-model="form.due_date" />
             </div>
 
-            <!-- Errors -->
-            <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
-
-            <!-- Submit -->
             <button type="submit" :disabled="loading">
-                {{ loading ? "Creating..." : "Create Task" }}
+                Create Task
             </button>
         </form>
     </div>
@@ -45,52 +49,91 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import axiosInstance from "../api/axios";
+import ErrorAlertComponent from "../components/ErrorAlertComponent.vue";
+import { startLoading, stopLoading } from '../stores/loading';
+import { authState } from '../auth';
 
 const form = ref({
     title: "",
     description: "",
     project_id: "",
+    assigned_to_id: "",
     due_date: "",
 });
 
 const projects = ref([]);
-const errorMessage = ref("");
+const assignees = ref([]);
+
+const alertMessage = ref("");
+const alertType = ref("error");
+const alertFieldErrors = ref({});
 const loading = ref(false);
 
-// Fetch projects from backend
+const clearAlert = () => {
+    alertMessage.value = "";
+    alertFieldErrors.value = {};
+};
+
 const getProjects = async () => {
+    startLoading();
     try {
-        const res = await axios.get("/projects");
+        const res = await axiosInstance.get("/api/projects");
         projects.value = res.data;
-    } catch (err) {
-        console.error(err);
+    } finally {
+        stopLoading();
     }
 };
 
-// Submit form
-const createTask = async () => {
+const loadAssignees = async () => {
+    if (!form.value.project_id) {
+        assignees.value = [];
+        return;
+    }
+    startLoading();
     try {
-        loading.value = true;
-        errorMessage.value = "";
+        const res = await axiosInstance.get(`/api/projects/${form.value.project_id}`);
+        assignees.value = res.data.members || [];
+    } finally {
+        stopLoading();
+    }
+};
 
-        const res = await axios.post("/tasks", form.value);
+const createTask = async () => {
+    clearAlert();
+    try {
+        startLoading();
+        form.value.status_id= 1 //in progress status
+        form.value.created_by_id= authState.user.id; //user creating the request
 
-        alert("Task created successfully!");
+        await axiosInstance.post("/api/tasks", form.value);
 
-        // Reset form
+        alertType.value = "success";
+        alertMessage.value = "Task created successfully!";
+        alertFieldErrors.value = {};
+
         form.value = {
             title: "",
             description: "",
             project_id: "",
+            assigned_to_id: "",
             due_date: "",
+            status_id: "",
+            created_by_id: "",
         };
+        assignees.value = [];
 
     } catch (error) {
-        console.log(error);
-        errorMessage.value = error.response?.data?.message || "Error creating task.";
+        alertType.value = "error";
+
+        if (error.response?.status === 422) {
+            alertFieldErrors.value = error.response.data.errors || {};
+        } else {
+            alertMessage.value = error.response?.data?.message || "Error creating task.";
+        }
+
     } finally {
-        loading.value = false;
+        stopLoading();
     }
 };
 
@@ -133,10 +176,5 @@ button {
 
 button:disabled {
     background: gray;
-}
-
-.error-msg {
-    color: red;
-    font-weight: 600;
 }
 </style>

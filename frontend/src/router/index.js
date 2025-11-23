@@ -21,22 +21,30 @@ const routes = [
         path: 'manage-users',
         name: 'manage-users',
         component: () => import('../views/ManageUsersView.vue'),
+        meta: { requiresAdmin: true },
       },
       {
         path: 'manage-projects',
         name: 'manage-projects',
         component: () => import('../views/ManageProjectsView.vue'),
+        meta: { requiresAdmin: true },
       },
       {
         path: 'analytics',
         name: 'analytics',
         component: () => import('../views/AnalyticsView.vue'),
+        meta: { requiresAdmin: true },
       },
       {
         path: 'create-task',
         name: 'create-task',
         component: () => import('../views/CreateTaskView.vue'),
       },
+      {
+        path: '/tasks/:id',
+        name: 'task-detail',
+        component: () => import('../views/TaskDetailView.vue'),
+      }
     ],
   },
 
@@ -64,8 +72,20 @@ router.beforeEach(async (to, from, next) => {
   if (authState.token && !authState.user) {
     await fetchUser();
   }
-  if (to.meta.requiresAuth && !authState.token) return next({ name: 'login' });
-  if (to.meta.guestOnly && authState.token) return next({ name: 'dashboard' });
+
+  if (to.meta.requiresAuth && !authState.token) {
+    return next({ name: 'login' });
+  }
+
+  if (to.meta.guestOnly && authState.token) {
+    return next({ name: 'dashboard' });
+  }
+
+  if (to.meta.requiresAdmin) {
+    if (!authState.user || authState.user.role !== 'admin') {
+      return next({ name: 'dashboard' });
+    }
+  }
 
   next();
 });

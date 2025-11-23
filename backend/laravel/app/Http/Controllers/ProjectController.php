@@ -9,23 +9,31 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+
         $query = Project::with('members:id,name,email');
+
+        if ($user->role !== 'admin') {
+            $query->whereHas('members', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
+        }
 
         if ($request->has('search') && $request->search !== '') {
             $search = $request->search;
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
         }
 
-        if ($request->boolean('paginate', true)) {
-            $perPage = $request->query('per_page', 10);
-            $projects = $query->paginate($perPage);
-        } else {
-            $projects = $query->get();
-        }
+        $projects = $request->boolean('paginate', false)
+            ? $query->paginate($request->query('per_page', 10))
+            : $query->get();
 
         return response()->json($projects, 200);
     }
+
 
     public function store(Request $request)
     {
@@ -80,7 +88,9 @@ class ProjectController extends Controller
         $project->members()->syncWithoutDetaching($validated['user_ids']);
 
         $members = $project->members()->get([
-            'users.id', 'users.name', 'users.email'
+            'users.id',
+            'users.name',
+            'users.email'
         ]);
 
         return response()->json([
@@ -99,7 +109,9 @@ class ProjectController extends Controller
         $project->members()->detach($validated['user_ids']);
 
         $members = $project->members()->get([
-            'users.id', 'users.name', 'users.email'
+            'users.id',
+            'users.name',
+            'users.email'
         ]);
 
         return response()->json([

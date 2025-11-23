@@ -14,6 +14,7 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
+  overflow-x: hidden;
 }
 
 #app {

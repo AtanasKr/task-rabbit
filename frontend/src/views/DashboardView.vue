@@ -1,28 +1,30 @@
 <template>
-  <div class="dashboard-info">
-    <header class="top-bar">
-      <div>
-        <h1>{{ authState.user.name.charAt(0).toUpperCase() + authState.user.name.slice(1) }}'s Dashboard</h1>
-        <p v-if="authState.user">
-          Hello, <strong>{{ authState.user.name.charAt(0).toUpperCase() + authState.user.name.slice(1) }}</strong><br>
-        <p>You are curretnly logged as {{ authState.user.role }}.</p>
-        </p>
-      </div>
-    </header>
+  <div class="dashboard-container">
+    <div class="dashboard-info">
+      <header class="top-bar">
+        <div>
+          <h1>{{ formattedName }}'s Dashboard</h1>
+          <p>Hello, <strong>{{ formattedName }}</strong></p>
+          <p>You are currently logged in as {{ authState.user.role }}.</p>
+        </div>
+      </header>
 
-    <main>
-      <p>
-        Hope you have a great day! Lets see what you have scheduled!
-      </p>
-    </main>
-  </div>
-  <div class="tasks">
+      <main>
+        <p>Hope you have a great day! Let's see what you have scheduled!</p>
+      </main>
+    </div>
+
+    <TasksSection />
   </div>
 </template>
 
 <script setup>
-import { authState } from '../auth';
+import { authState } from "../auth";
+import TasksSection from "../components/TasksSection.vue";
 
+const formattedName =
+  authState.user.name.charAt(0).toUpperCase() +
+  authState.user.name.slice(1);
 </script>
 
 <style scoped>
@@ -40,12 +42,5 @@ import { authState } from '../auth';
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
 }
 </style>

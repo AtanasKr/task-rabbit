@@ -20,7 +20,7 @@ class UserController extends Controller
             });
         }
 
-        if ($request->boolean('paginate', true)) {
+        if ($request->boolean('paginate', false)) {
             $perPage = $request->query('per_page', 10);
             $users = $query->paginate($perPage);
         } else {

@@ -9,5 +9,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('{task}', 'show');
         Route::put('{task}', 'update');
         Route::post('/assign', 'assignTask');
+        Route::patch('{task}/complete', [TaskController::class, 'markComplete']);
+        Route::patch('{task}/close', [TaskController::class, 'close']);
     });
 });
