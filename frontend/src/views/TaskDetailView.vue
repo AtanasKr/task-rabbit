@@ -683,6 +683,18 @@ onMounted(() => {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+.modal-content textarea,
+.modal-content select[multiple] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  min-height: 120px;
+  resize: vertical;
+}
+
 .modal-header {
     display: flex;
     justify-content: space-between;

@@ -61,8 +61,23 @@ class TaskController extends Controller
         return response()->json($task, 201);
     }
 
-    public function show(Task $task)
+    public function show(Request $request, Task $task)
     {
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+
+            $isProjectMember = $task->project->members()->where('user_id', $user->id)->exists();
+            $isAssignee = $task->assigned_to_id === $user->id;
+            $isCreator = $task->created_by_id === $user->id;
+
+            if (!$isProjectMember && !$isAssignee && !$isCreator) {
+                return response()->json([
+                    'message' => 'You are not authorized to view this task.'
+                ], 403);
+            }
+        }
+
         $task->load([
             'project:id,name',
             'status:id,name',
