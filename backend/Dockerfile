@@ -17,7 +17,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-COPY laravel/ ./
+COPY . .
 
 RUN composer install --no-interaction --prefer-dist
 
