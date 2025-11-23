@@ -10,7 +10,10 @@ class CommentController extends Controller
 {
     public function index(Task $task)
     {
-        $comments = $task->comments()->with('user:id,name')->orderBy('created_at', 'asc')->get();
+        $comments = $task->comments()
+            ->with('user:id,name,email') // include email
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         return response()->json($comments, 200);
     }
