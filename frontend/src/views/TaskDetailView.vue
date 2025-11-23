@@ -25,7 +25,7 @@
                     <button @click="completeTask" class="btn-primary">
                         Mark As Complete
                     </button>
-                    <button @click="closeTask" class="btn-red">
+                    <button v-if="authState.user.role=='admin'" @click="closeTask" class="btn-red">
                         Close Task
                     </button>
                 </div>
@@ -162,6 +162,7 @@ import { useRoute } from 'vue-router';
 import axiosInstance from "../api/axios";
 import ErrorAlertComponent from '../components/ErrorAlertComponent.vue';
 import { startLoading, stopLoading } from '../stores/loading';
+import { authState } from '../auth';
 
 const route = useRoute();
 

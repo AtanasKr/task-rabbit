@@ -9,12 +9,22 @@ class AnalyticsController extends Controller
 {
     public function stats()
     {
+        $taskCounts = Task::query()
+            ->leftJoin('task_statuses', 'tasks.status_id', '=', 'task_statuses.id')
+            ->selectRaw("
+                COUNT(*) as all_tasks,
+                SUM(CASE WHEN task_statuses.name = 'Completed' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN task_statuses.name = 'Closed' THEN 1 ELSE 0 END) as closed,
+                SUM(CASE WHEN task_statuses.name = 'In Progress' THEN 1 ELSE 0 END) as in_progress
+            ")
+            ->first();
+
         return response()->json([
             'tasks' => [
-                'all' => Task::count(),
-                'completed' => Task::whereHas('status', fn($q) => $q->where('name', 'Completed'))->count(),
-                'closed' => Task::whereHas('status', fn($q) => $q->where('name', 'Closed'))->count(),
-                'in_progress' => Task::whereHas('status', fn($q) => $q->where('name', 'In Progress'))->count(),
+                'all' => $taskCounts->all_tasks,
+                'completed' => $taskCounts->completed,
+                'closed' => $taskCounts->closed,
+                'in_progress' => $taskCounts->in_progress,
             ],
             'projects' => Project::count(),
             'users' => User::count(),

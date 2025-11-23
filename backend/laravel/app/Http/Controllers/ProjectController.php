@@ -49,8 +49,16 @@ class ProjectController extends Controller
         return response()->json($project, 201);
     }
 
-    public function show(Project $project)
+    public function show(Request $request, Project $project)
     {
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            if (!$project->members()->where('users.id', $user->id)->exists()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        }
+
         $project->load('members:id,name,email');
         return response()->json($project, 200);
     }
