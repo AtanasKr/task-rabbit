@@ -280,6 +280,7 @@ const addComment = async () => {
 
         comments.value.push(res.data);
         newComment.value = "";
+        await fetchComments();
         showAlert("Comment added!", "success");
     } catch (err) {
         showAlert("Failed to post comment.", "error", err.response?.data?.errors || {});
