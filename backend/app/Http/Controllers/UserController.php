@@ -9,7 +9,15 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
+        $currentUser = $request->user();
+
         $query = User::query()->select('id', 'name', 'email', 'role', 'created_at');
+
+        if ($currentUser->role !== 'admin') {
+            $query->whereHas('projectMemberships', function ($q) use ($currentUser) {
+                $q->whereIn('projects.id', $currentUser->projectMemberships()->pluck('projects.id'));
+            });
+        }
 
         if ($request->has('search') && $request->search !== '') {
             $search = $request->search;

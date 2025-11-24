@@ -9,47 +9,11 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, TaskService $service)
     {
-        $user = $request->user();
+        $tasks = $service->getTasks($request->all(), $request->user());
 
-        $query = Task::with(['project', 'status', 'assignee', 'creator']);
-
-        if ($request->boolean('assigned_only')) {
-            $query->where('assigned_to_id', $user->id);
-        }
-
-        if ($user->role !== 'admin') {
-            $query->where(function ($q) use ($user) {
-                $q->where('assigned_to_id', $user->id)
-                    ->orWhere('created_by_id', $user->id)
-                    ->orWhereHas(
-                        'project.members',
-                        fn($m) =>
-                        $m->where('users.id', $user->id)
-                    );
-            });
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%");
-            });
-        }
-
-        if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
-        }
-
-        if ($request->filled('status_id')) {
-            $query->where('status_id', $request->status_id);
-        }
-
-        $query->orderBy('due_date');
-
-        return response()->json(['data' => $query->get()], 200);
+        return response()->json(['data' => $tasks], 200);
     }
 
     public function store(Request $request)
@@ -63,22 +27,16 @@ class TaskController extends Controller
         ]);
 
         $validated['created_by_id'] = $request->user()->id;
-        $defaultStatus = TaskStatus::firstWhere('name', 'In Progress');
-        if (!$defaultStatus) {
-            return response()->json(['message' => 'Default task status "In Progress" not found.'], 500);
-        }
-        $validated['status_id'] = $defaultStatus->id;
+        $validated['status_id'] = TaskStatus::firstWhere('name', 'In Progress')->id;
 
         $task = Task::create($validated);
 
         return response()->json($task, 201);
     }
 
-    public function show(Request $request, Task $task)
+    public function show(Request $request, Task $task, TaskService $service)
     {
-        $user = $request->user();
-
-        $this->authorizeTaskAccess($task, $user);
+        $service->authorizeAccess($task, $request->user());
 
         $task->load([
             'project:id,name',
@@ -93,24 +51,20 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task)
     {
-        $validated = $request->validate([
+        $task->update($request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'due_date' => 'nullable|date',
             'status_id' => 'sometimes|required|exists:task_statuses,id',
             'assigned_to_id' => 'sometimes|required|exists:users,id',
             'project_id' => 'sometimes|required|exists:projects,id',
-        ]);
-
-        $task->update($validated);
+        ]));
 
         return response()->json($task, 200);
     }
 
-    public function assignTask(Request $request, TaskService $taskService)
+    public function assignTask(Request $request, TaskService $service)
     {
-        $user = $request->user();
-
         $validated = $request->validate([
             'task_id' => 'required|exists:tasks,id',
             'user_id' => 'required|exists:users,id',
@@ -119,16 +73,12 @@ class TaskController extends Controller
 
         $task = Task::findOrFail($validated['task_id']);
 
-        $isProjectMember = $task->project->members()->where('users.id', $user->id)->exists();
-        $isCreator = $task->created_by_id === $user->id;
-
-        if ($user->role !== 'admin' && !$isProjectMember && !$isCreator) {
-            return response()->json([
-                'message' => 'You are not authorized to assign this task.'
-            ], 403);
-        }
-
-        $task = $taskService->assignTask($task, $validated['user_id'], $validated['comment'], $user->id);
+        $task = $service->assignTask(
+            $task,
+            $validated['user_id'],
+            $validated['comment'],
+            $request->user()->id
+        );
 
         return response()->json([
             'message' => 'Task assigned successfully',
@@ -136,54 +86,23 @@ class TaskController extends Controller
         ], 200);
     }
 
-    public function markComplete(Request $request, Task $task)
+    public function markComplete(Request $request, Task $task, TaskService $service)
     {
-        $user = $request->user();
-
-        $this->authorizeTaskAccess($task, $user);
-
-        $completedStatus = TaskStatus::where('name', 'Completed')->first();
-
-        if (!$completedStatus) {
-            return response()->json(['message' => 'Completed status not found'], 404);
-        }
-        $task->update([
-            'status_id' => $completedStatus->id,
-            'completed_at' => now()
-        ]);
+        $task = $service->markComplete($task, $request->user());
 
         return response()->json([
             'message' => 'Task marked as complete',
-            'task' => $task->load(['project', 'status', 'assignee', 'creator'])
+            'task' => $task
         ], 200);
     }
 
-
-    public function close(Task $task)
+    public function close(Task $task, TaskService $service)
     {
-        $closedStatus = TaskStatus::where('name', 'Closed')->first();
-
-        if (!$closedStatus) {
-            return response()->json(['message' => 'Closed status not found'], 404);
-        }
-
-        $task->update(['status_id' => $closedStatus->id]);
+        $task = $service->closeTask($task);
 
         return response()->json([
             'message' => 'Task closed successfully',
-            'task' => $task->load(['project', 'status', 'assignee', 'creator'])
+            'task' => $task
         ], 200);
-    }
-
-    private function authorizeTaskAccess(Task $task, $user = null)
-    {
-        $user = $user ?? auth()->user();
-        $isProjectMember = $task->project->members()->where('users.id', $user->id)->exists();
-        $isAssignee = $task->assigned_to_id === $user->id;
-        $isCreator = $task->created_by_id === $user->id;
-
-        if ($user->role !== 'admin' && !$isProjectMember && !$isAssignee && !$isCreator) {
-            abort(403, 'You are not authorized to access this task.');
-        }
     }
 }

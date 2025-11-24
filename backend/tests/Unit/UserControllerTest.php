@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,7 +15,7 @@ class UserControllerTest extends TestCase
     #[Test]
     public function can_list_all_users()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
         User::factory()->count(3)->create();
 
         $response = $this->actingAs($user, 'sanctum')
@@ -27,7 +28,7 @@ class UserControllerTest extends TestCase
     #[Test]
     public function can_search_users_by_name_email_or_role()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
 
         User::factory()->create([
             'name' => 'Alice Wonderland',
@@ -73,5 +74,51 @@ class UserControllerTest extends TestCase
 
         $response->assertStatus(403);
         $this->assertDatabaseHas('users', ['id' => $otherUser->id]);
+    }
+
+    #[Test]
+    public function non_admin_sees_only_users_in_their_project()
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $project = Project::factory()->create();
+        $project->members()->attach($user->id);
+
+        $member = User::factory()->create();
+        $project->members()->attach($member->id);
+
+        $otherProject = Project::factory()->create();
+        $otherUser = User::factory()->create();
+        $otherProject->members()->attach($otherUser->id);
+
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/users');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(2); // $user + $member
+        $response->assertJsonFragment(['id' => $user->id]);
+        $response->assertJsonFragment(['id' => $member->id]);
+        $response->assertJsonMissing(['id' => $otherUser->id]);
+    }
+
+    #[Test]
+    public function non_admin_search_only_within_their_project()
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $project = Project::factory()->create();
+        $project->members()->attach($user->id);
+
+        $member1 = User::factory()->create(['name' => 'Alice']);
+        $member2 = User::factory()->create(['name' => 'Bob']);
+        $project->members()->attach([$member1->id, $member2->id]);
+
+        $otherProject = Project::factory()->create();
+        $otherUser = User::factory()->create(['name' => 'Alice']);
+        $otherProject->members()->attach($otherUser->id);
+
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/users?search=Alice');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1); // Only Alice from the same project
+        $response->assertJsonFragment(['id' => $member1->id]);
+        $response->assertJsonMissing(['id' => $otherUser->id]);
     }
 }

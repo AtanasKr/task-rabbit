@@ -3,37 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Services\ProjectService;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, ProjectService $service)
     {
-        $user = $request->user();
-
-        $query = Project::with('members:id,name,email');
-
-        if ($user->role !== 'admin') {
-            $query->whereHas('members', function ($q) use ($user) {
-                $q->where('users.id', $user->id);
-            });
-        }
-
-        if ($request->has('search') && $request->search !== '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        $projects = $request->boolean('paginate', false)
-            ? $query->paginate($request->query('per_page', 10))
-            : $query->get();
+        $projects = $service->getProjects($request->all(), $request->user());
 
         return response()->json($projects, 200);
     }
-
 
     public function store(Request $request)
     {
@@ -49,17 +29,12 @@ class ProjectController extends Controller
         return response()->json($project, 201);
     }
 
-    public function show(Request $request, Project $project)
+    public function show(Request $request, Project $project, ProjectService $service)
     {
-        $user = $request->user();
-
-        if ($user->role !== 'admin') {
-            if (!$project->members()->where('users.id', $user->id)->exists()) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-        }
+        $service->authorizeAccess($project, $request->user());
 
         $project->load('members:id,name,email');
+
         return response()->json($project, 200);
     }
 
@@ -81,25 +56,17 @@ class ProjectController extends Controller
     {
         $project->delete();
 
-        return response()->json([
-            'message' => 'Project deleted successfully'
-        ], 200);
+        return response()->json(['message' => 'Project deleted successfully'], 200);
     }
 
-    public function addMembers(Request $request, Project $project)
+    public function addMembers(Request $request, Project $project, ProjectService $service)
     {
         $validated = $request->validate([
             'user_ids' => 'required|array',
             'user_ids.*' => 'exists:users,id',
         ]);
 
-        $project->members()->syncWithoutDetaching($validated['user_ids']);
-
-        $members = $project->members()->get([
-            'users.id',
-            'users.name',
-            'users.email'
-        ]);
+        $members = $service->addMembers($project, $validated['user_ids']);
 
         return response()->json([
             'message' => 'Users added successfully',
@@ -107,20 +74,14 @@ class ProjectController extends Controller
         ], 200);
     }
 
-    public function removeMembers(Request $request, Project $project)
+    public function removeMembers(Request $request, Project $project, ProjectService $service)
     {
         $validated = $request->validate([
             'user_ids' => 'required|array',
             'user_ids.*' => 'exists:users,id',
         ]);
 
-        $project->members()->detach($validated['user_ids']);
-
-        $members = $project->members()->get([
-            'users.id',
-            'users.name',
-            'users.email'
-        ]);
+        $members = $service->removeMembers($project, $validated['user_ids']);
 
         return response()->json([
             'message' => 'Users removed successfully',
