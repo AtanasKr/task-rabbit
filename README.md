@@ -9,17 +9,17 @@ This project is built as part of a development assignment and demonstrates a mod
 
 ## 📑 Table of Contents
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-  - [Run with start script](#-run-with-start-script)
-  - [Run without start script](#-run-without-script)
-- [Unit Testing](#-unit-testing)
-  - [Run locally](#-run-locally-docker-recommended)
-  - [Run in container](#-run-in-container)
-- [Database Schema](#-database-schema-overview)
-- [Assumptions](#-assumptions)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Run with start script](#run-with-start-script)
+  - [Run without start script](#run-without-start-script)
+- [Unit Testing](#unit-testing)
+  - [Run locally](#run-locally)
+  - [Run in container](#run-in-container)
+- [Database Schema](#database-schema-overview)
+- [Assumptions](#assumptions)
 
 ---
 
@@ -108,7 +108,8 @@ cp backend/.env.example backend/.env
 docker compose build --no-cache
 docker compose up
 ```
-Composer install should be runned autoamatically inside backend and npm install should be runned inside frontend if not please run them in the respective folder.
+Composer install should run automatically inside the backend container, and npm install should run inside the frontend container.
+If not, please run them manually.
 After containers are running:
 ```bash
 php artisan migrate
@@ -334,7 +335,7 @@ They are not part of the domain model, but exist for framework functionality.
   - Create and update tasks within those projects
   - Assign tasks only to users in the same project
   - Comment on tasks they can see
-- Work flow consist of:
+- Work flow consists of:
   - Registering as admin
   - As admin creating project
   - Assigning users for the project
