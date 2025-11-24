@@ -134,4 +134,38 @@ class TaskControllerTest extends TestCase
             'status_id' => TaskStatus::firstWhere('name', 'Closed')->id,
         ]);
     }
+
+    #[Test]
+    public function admin_can_delete_task()
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $task = Task::factory()->create();
+
+        $response = $this->actingAs($admin)
+            ->deleteJson("/api/tasks/{$task->id}");
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'message' => 'Task deleted successfully',
+        ]);
+
+        $this->assertDatabaseMissing('tasks', [
+            'id' => $task->id,
+        ]);
+    }
+
+    #[Test]
+    public function non_admin_cannot_delete_task()
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $task = Task::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->deleteJson("/api/tasks/{$task->id}");
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+        ]);
+    }
 }

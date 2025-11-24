@@ -25,11 +25,14 @@
                     <button @click="completeTask" class="btn-primary">
                         Mark As Complete
                     </button>
-                    <button v-if="authState.user.role == 'admin'" @click="closeTask" class="btn-red">
+                    <button v-if="authState.user.role === 'admin'" @click="closeTask" class="btn-red">
                         Close Task
                     </button>
                     <button v-if="authState.user.role === 'admin'" @click="openEditModal" class="btn-assign">
                         Edit Task
+                    </button>
+                    <button v-if="authState.user.role === 'admin'" @click="deleteTask" class="btn-red">
+                        Delete Task
                     </button>
                 </div>
             </div>
@@ -124,6 +127,7 @@
             </div>
         </div>
 
+        <!-- Assign modal -->
         <div v-if="showAssignModal" class="modal-overlay" @click="showAssignModal = false">
             <div class="modal-content" @click.stop>
                 <div class="modal-header">
@@ -185,13 +189,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axiosInstance from "../api/axios";
 import ErrorAlertComponent from '../components/ErrorAlertComponent.vue';
 import { startLoading, stopLoading } from '../stores/loading';
 import { authState } from '../auth';
 
 const route = useRoute();
+const router = useRouter();
 
 const task = ref(null);
 const comments = ref([]);
@@ -315,6 +320,27 @@ const closeTask = async () => {
     }
 };
 
+const deleteTask = async () => {
+    if (!task.value) return;
+
+    const confirmed = window.confirm(
+        "Are you sure you want to delete this task? This action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    try {
+        startLoading();
+        await axiosInstance.delete(`/api/tasks/${task.value.id}`);
+        showAlert("Task deleted successfully!", "success");
+        router.push('/dashboard');
+    } catch (err) {
+        showAlert("Failed to delete task.", "error", err.response?.data?.errors || {});
+    } finally {
+        stopLoading();
+    }
+};
+
 const assignTask = async () => {
     if (!selectedUserId.value) return;
 
@@ -373,7 +399,12 @@ const updateTask = async () => {
 
 const getInitials = (name) => {
     if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
 };
 
 const formatDate = (date) => {
