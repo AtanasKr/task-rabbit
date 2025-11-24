@@ -9,17 +9,17 @@ This project is built as part of a development assignment and demonstrates a mod
 
 ## 📑 Table of Contents
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-  - [Run with start script](#run-with-start-script)
-  - [Run without start script](#run-without-start-script)
-- [Unit Testing](#unit-testing)
-  - [Run locally](#run-locally)
-  - [Run in container](#run-in-container)
-- [Database Schema](#database-schema-overview)
-- [Assumptions](#assumptions)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+  - [Run with start script](#-run-with-start-script)
+  - [Run without start script](#-run-without-script)
+- [Unit Testing](#-unit-testing)
+  - [Run locally](#-run-locally-docker-recommended)
+  - [Run in container](#-run-in-container)
+- [Database Schema](#-database-schema-overview)
+- [Assumptions](#-assumptions)
 
 ---
 
