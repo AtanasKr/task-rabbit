@@ -32,7 +32,7 @@ class TaskControllerTest extends TestCase
         $response = $this->actingAs($admin)->getJson('/api/tasks');
 
         $response->assertStatus(200);
-        $response->assertJsonCount(3, 'data');
+        $response->assertJsonCount(3);
     }
 
     #[Test]
@@ -48,7 +48,7 @@ class TaskControllerTest extends TestCase
         $response = $this->actingAs($user)->getJson('/api/tasks');
 
         $response->assertStatus(200);
-        $response->assertJsonCount(2, 'data');
+        $response->assertJsonCount(2);
     }
 
     #[Test]

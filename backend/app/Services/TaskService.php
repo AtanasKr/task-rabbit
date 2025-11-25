@@ -30,9 +30,10 @@ class TaskService
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
+
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%");
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -42,6 +43,10 @@ class TaskService
 
         if (!empty($filters['status_id'])) {
             $query->where('status_id', $filters['status_id']);
+        }
+
+        if (!empty($filters['paginate']) && $filters['paginate'] == true) {
+            return $query->orderBy('due_date')->paginate($filters['per_page'] ?? 10);
         }
 
         return $query->orderBy('due_date')->get();

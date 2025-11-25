@@ -13,7 +13,7 @@ class TaskController extends Controller
     {
         $tasks = $service->getTasks($request->all(), $request->user());
 
-        return response()->json(['data' => $tasks], 200);
+        return response()->json($tasks, 200);
     }
 
     public function store(Request $request)

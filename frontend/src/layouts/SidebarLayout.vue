@@ -22,6 +22,10 @@
                     <i class="fas fa-chart-bar"></i>
                     Analytics
                 </router-link>
+                <router-link to="/task-manager">
+                    <i class="fas fa-project-diagram"></i>
+                    Task Manager
+                </router-link>
                 <router-link to="/create-task">
                     <i class="fas fa-plus-circle"></i>
                     Create task

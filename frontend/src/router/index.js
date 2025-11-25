@@ -44,6 +44,11 @@ const routes = [
         path: '/tasks/:id',
         name: 'task-detail',
         component: () => import('../views/TaskDetailView.vue'),
+      },
+      {
+        path: 'task-manager',
+        name: 'task-manager',
+        component: () => import('../views/TaskManager.vue'),
       }
     ],
   },
