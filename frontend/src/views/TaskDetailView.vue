@@ -240,6 +240,8 @@ const fetchTask = async () => {
     try {
         const response = await axiosInstance.get(`/api/tasks/${route.params.id}`);
         task.value = response.data;
+        const projectRes = await axiosInstance.get(`/api/projects/${task.value.project.id}`);
+        users.value = projectRes.data.members;
     } catch (err) {
         showAlert("Failed to load task.", "error");
     } finally {
@@ -258,18 +260,6 @@ const fetchComments = async () => {
         showAlert("Could not load comments.", "error");
     } finally {
         loadingComments.value = false;
-    }
-};
-
-const fetchUsers = async () => {
-    try {
-        startLoading();
-        const res = await axiosInstance.get("/api/users");
-        users.value = res.data;
-    } catch (error) {
-        showAlert("Failed to load user list.", "error");
-    } finally {
-        stopLoading();
     }
 };
 
@@ -443,7 +433,6 @@ const getStatusClass = (status) => {
 onMounted(() => {
     fetchTask();
     fetchComments();
-    fetchUsers();
 });
 </script>
 
