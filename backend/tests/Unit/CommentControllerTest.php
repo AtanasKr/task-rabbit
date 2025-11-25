@@ -16,9 +16,8 @@ class CommentControllerTest extends TestCase
     #[Test]
     public function index_returns_comments_for_task()
     {
-        // Create a task with comments and related users
         $task = Task::factory()
-            ->has(Comment::factory()->count(3)->forUser()) // forUser() creates related user
+            ->has(Comment::factory()->count(3)->forUser())
             ->create();
 
         $user = $task->comments->first()->user;

@@ -18,11 +18,9 @@ class AnalyticsControllerTest extends TestCase
     #[Test]
     public function stats_returns_correct_json(): void
     {
-        // Seed users, projects, and tasks
         $users = User::factory()->count(3)->create();
         $projects = Project::factory()->count(2)->create();
 
-        // Create tasks with different statuses: 1=in_progress, 2=completed, 3=closed
         Task::factory()->create(['status_id' => 1]);
         Task::factory()->create(['status_id' => 2]);
         Task::factory()->create(['status_id' => 2]);
