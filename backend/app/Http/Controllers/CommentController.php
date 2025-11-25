@@ -11,7 +11,7 @@ class CommentController extends Controller
     public function index(Task $task)
     {
         $comments = $task->comments()
-            ->with('user:id,name,email') // include email
+            ->with('user:id,name,email')
             ->orderBy('created_at', 'asc')
             ->get();
 
